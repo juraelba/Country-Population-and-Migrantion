@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Fusion Registry</title>
+  </head>
+  <body id="home">
+    <div id="agencies">
+      <h2>Agencies</h2>
+
+      <table>
+        <thead>
+          <th>ID</th>
+          <th>Name</th>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="dataflows">
+      <h2>Dataflows</h2>
+
+      <table>
+        <thead>
+          <th>Agency ID</th>
+          <th>ID</th>
+          <th>Version</th>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="dataflow">
+      <h2>Dataflow</h2>
+
+      <table>
+        <thead>
+          <th>Time period</th>
+          <th>Frequency</th>
+          <th>Series</th>
+          <th>Reference Area</th>
+          <th>Obs Value</th>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="IMJS.min.js"></script>
+  <script>
+    const initialize = () => {
+      const config = {
+        includeMetadata: true,
+        url: "https://demo.metadatatechnology.com/FusionRegistry/ws/public/sdmxapi/rest/",
+      }
+      IMJS.IMJSStatic.getInstance(config);
+    }
+    const imjsGet = IMJS.IMUtils.callSDMXGETService;
+    
+    initialize();
+
+    const GET_AGENCIES_PATH = "agencyscheme/all/all/all?format=sdmx-json&detail=full&references=none&includeMetadata=true&includeAllAnnotations=true";
+    imjsGet(GET_AGENCIES_PATH).then(json => {
+      let html = "";
+      const dataset = new IMJS.AgencySchemeBeanImpl(json);
+      dataset.items.map(item => {
+        const attrs = {
+          id: item._json.id,
+          name: item._json.names[0].value,
+        };
+
+        html += "<tr>";
+        html += "<td>" + attrs["id"] + "</td>";
+        html += "<td>" + attrs["name"] + "</td>";
+        html += "</tr>";
+      });
+
+      $("#agencies tbody").append(html);
+    });
+
+    const GET_DATAFLOWS_PATH = "dataflow/all/all/all?format=sdmx-json&detail=full&references=none&includeMetadata=true&includeMetrics=only&includeAllAnnotations=true";
+    imjsGet(GET_DATAFLOWS_PATH).then(json => {
+      let html = "";
+      const dataset = new IMJS.DataflowBeanImpl(json);
+      dataset._json.Dataflow.map(item => {
+        const attrs = {
+          agencyId: item.agencyId,
+          id: item.id,
+          version: item.version,
+        };
+
+        html += "<tr>";
+        html += "<td>" + attrs["agencyId"] + "</td>";
+        html += "<td>" + attrs["id"] + "</td>";
+        html += "<td>" + attrs["version"] + "</td>";
+        html += "</tr>";
+      });
+
+      $("#dataflows tbody").append(html);
+    });
+
+    const queryString = "?format=sdmx-json&detail=full&references=none&includeMetadata=true&includeMetrics=only&includeAllAnnotations=true";
+
+    const agencyId = "WB";
+    const dataflowId = "WDI_POVERTY";
+    const dataflowVersion = "1.0";
+    // const dimensionFilter = "all";
+    const dimensionFilter = "A.SI_POV_2DAY.THA+VNM";
+    const GET_DATAFLOW_PATH = `data/${agencyId},${dataflowId},${dataflowVersion}/${dimensionFilter}${queryString}`;
+    console.log(GET_DATAFLOW_PATH);
+    imjsGet(GET_DATAFLOW_PATH).then(json => {
+      let html = "";
+      const dataset = new IMJS.DataflowBeanImpl(json);
+
+      const attrs = {};
+      Object.entries(dataset.json.dataSets[0].series).map(([key, value]) => {
+        Object.values(value.observations).map(([obsValue]) => {
+          attrs["obsValue"] = obsValue;
+
+          html += "<tr>";
+          html += "<td>" + attrs["timePeriod"] + "</td>";
+          html += "<td>" + attrs["frequency"] + "</td>";
+          html += "<td>" + attrs["series"] + "</td>";
+          html += "<td>" + attrs["referenceArea"] + "</td>";
+          html += "<td>" + attrs["obsValue"] + "</td>";
+          html += "</tr>";
+        });
+      });
+
+      $("#dataflow tbody").append(html);
+    });
+  </script>
+</html>

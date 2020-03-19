@@ -1,0 +1,39 @@
+image: node:12.12.0
+
+variables:
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  CYPRESS_CACHE_FOLDER: "$CI_PROJECT_DIR/cache/Cypress"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .npm
+    - cache/Cypress
+    - node_modules
+
+before_script:
+  - apt-get update
+  - apt-get install --assume-yes xvfb libgtk-3-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
+  - npm install
+
+unit-tests:
+  stage: test
+  script:
+    - CI=true npm test
+
+integration-tests:
+  stage: test
+  script:
+    - CI=true npm run cy:test
+
+deployment:
+  stage: deploy
+  script:
+    - CI=true npm run build
+    - rm -rf public
+    - mv build public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

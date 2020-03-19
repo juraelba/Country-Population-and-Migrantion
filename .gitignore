@@ -1,0 +1,8 @@
+**/node_modules
+.DS_Store
+build
+
+# Cypress
+/coverage
+/cypress/screenshots
+/cypress/videos
