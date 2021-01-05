@@ -4,7 +4,7 @@
   "private": true,
   "homepage": "https://datopian.gitlab.io/clients/axenit",
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "connected-react-router": "^6.6.1",
     "dataframe-js": "^1.4.3",
     "deepmerge": "^4.2.2",
